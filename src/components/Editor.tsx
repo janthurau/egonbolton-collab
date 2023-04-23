@@ -10,7 +10,12 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin";
 import { type EditorState } from "lexical";
 import { type Provider } from "@lexical/yjs";
 import { IndexeddbPersistence } from "y-indexeddb";
-import { HocuspocusProvider } from "@hocuspocus/provider";
+import { HocuspocusProvider, HocuspocusProviderWebsocket, TiptapCollabProvider } from "@hocuspocus/provider";
+
+// @TODO: REPLACE APP ID
+const providerWebsocket = new HocuspocusProviderWebsocket({
+  url:  `wss://YOUR_APP_ID.collab.tiptap.cloud`,
+})
 
 export default function Editor({
   initialEditorState,
@@ -56,22 +61,18 @@ function createWebsocketProvider(
   const doc = new Y.Doc();
   yjsDocMap.set(id, doc);
 
-  const idbProvider = new IndexeddbPersistence(id, doc);
-  idbProvider.once("synced", () => {
-    console.log("idb");
-  });
-
-  const wsProvider = new WebsocketProvider("ws://localhost:1234", id, doc, {
-    connect: false,
-  });
-
-  const hocuspocusProvider = new HocuspocusProvider({
-    url: "ws://localhost:1234",
-    name: id,
+// @TODO: REPLACE APP ID
+// @TODO: PUT PROPER TOKEN
+  const hocuspocusProvider = new TiptapCollabProvider({
+    appId: 'YOUR_APP_ID',
+    name: `lexical-${id}`,
+    token: 'YOUR_TOKEN',
     document: doc,
+    websocketProvider: providerWebsocket,
   });
 
-  wsProvider.on("sync", () => console.log("ws"));
+  window.provider = hocuspocusProvider
+
   hocuspocusProvider.on("sync", () => console.log("hocuspocus"));
 
   // return {
@@ -98,5 +99,5 @@ function createWebsocketProvider(
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  return wsProvider;
+  return hocuspocusProvider;
 }
